@@ -1,0 +1,177 @@
+#Emily Pannell
+#CS 361 Project
+#Input Service
+
+import tkinter as tk
+
+def main():
+
+    user_path = input("Welcome to GroceryTracker. This application allows you to track the items and prices of your grocery trips or pantry inventories. To begin, please enter 'groceries' or 'pantry': ")
+    if user_path == 'groceries':
+        sorted_units = []
+        sorted_units_spare = []
+        strings = get_input_strings()
+        sorted_strings, sorted_spare = sort_strings(strings)
+        sorted_prices, sorted_prices_spare = get_input_prices(sorted_strings)
+
+        print_sorted_strings_grocery(sorted_strings, sorted_prices)
+
+    if user_path == 'pantry':
+        strings = get_input_strings()
+        sorted_strings, sorted_spare = sort_strings(strings)
+        sorted_prices, sorted_prices_spare = get_input_prices(sorted_strings)
+        sorted_units, sorted_units_spare = get_input_units(sorted_strings)
+
+        print_sorted_strings_pantry(sorted_strings, sorted_prices, sorted_units)
+
+def get_input_units(sorted_strings):
+    print("\nThis feature allows you to associate units with items in your pantry.")
+    if not sorted_strings:
+        print("You don't have any items on your list! Please enter items using the 'Make List' button and then try again.")
+        return
+    print("\n", sorted_strings)
+    input("\nPlease enter the units in the order the items are listed above (Example: '4 oz') Type 'done' to finish:")
+    sorted_units = []
+    sorted_units_spare = []
+    while True:
+        user_input = input().strip()
+        if user_input.lower() == 'done':
+            break
+        sorted_units.append(user_input)
+        sorted_units_spare.append(user_input)
+    return sorted_units, sorted_units_spare
+
+def get_input_prices(sorted_strings):
+    print("\nThis feature allows you to associate prices with items in your list.")
+    if not sorted_strings:
+        print("You don't have any items on your list! Please enter items using the 'Make List' button and then try again.")
+        return
+    print("\n", sorted_strings)
+    input("\nPlease enter the prices in the order the items are listed above. Type 'done' to finish:")
+    sorted_prices = []
+    sorted_prices_spare = []
+    while True:
+        user_input = input().strip()
+        if user_input.lower() == 'done':
+            break
+        sorted_prices.append(user_input)
+        sorted_prices_spare.append(user_input)
+    return sorted_prices, sorted_prices_spare
+
+def get_input_strings():
+    print("\nThis feature allows you to build your list. Please enter item names. Type 'done' to finish:")
+    strings = []
+    while True:
+        user_input = input().strip()
+        if user_input.lower() == 'done':
+            break
+        strings.append(user_input)
+    return strings
+
+def sort_strings(strings):
+    sort = sorted(strings)
+    sort_spare = sorted(strings)
+    return sort, sort_spare
+
+def print_sorted_strings_grocery(sorted_strings, sorted_prices):
+    user_input = input("\nWould you like to see your full list? Please type Y (yes) or N (no)")
+    if user_input == "Y":
+        print("Item Name     Price")
+        for i in range(len(sorted_strings)):
+            print(sorted_strings[i] + '        \t' + '$' + sorted_prices[i])
+    print("Note that some columns may be empty depending on if you have 'Prices' or 'Units' toggled on. To toggle these features, please go to options.")
+
+def print_sorted_strings_pantry(sorted_strings, sorted_prices, sorted_units):
+    user_input = input("\nWould you like to see your full list? Please type Y (yes) or N (no)")
+    if user_input == "Y":
+        print("Item Name     Price     Units")
+        for i in range(len(sorted_strings)):
+            print(sorted_strings[i] + '        \t' + '$' + sorted_prices[i] + '    \t' + sorted_units[i])
+    print("Note that some columns may be empty depending on if you have 'Prices' or 'Units' toggled on. To toggle these features, please go to options.")
+
+def print_sorted_strings_simple(sorted_strings, sorted_prices):
+    print("Item Name     Price")
+    for i in range(len(sorted_strings)):
+        print(sorted_strings[i] + '        \t' + '$' + sorted_prices[i])
+
+def print_sorted_strings_pantry_simple(sorted_strings, sorted_prices, sorted_units):
+    print("Item Name     Price     Units")
+    for i in range(len(sorted_strings)):
+        print(sorted_strings[i] + '        \t' + '$' + sorted_prices[i] + '    \t' + sorted_units[i])
+
+def clear_strings(strings, sorted_strings):
+    print("\nThis feature will clear your current list. Are you sure you want to clear your grocery list? (Y or N)")
+    user_input = input()
+    if user_input == 'Y':
+        strings.clear()
+        sorted_strings.clear()
+        print("Your list has been cleared.")
+        return sorted_strings
+    elif user_input == "N":
+        print("Your list has not been cleared.")
+        return sorted_strings
+    else:
+        print("Please enter 'Y' for yes or 'N' for no: ")
+
+def delete_entry(strings, sorted_strings, sorted_prices, sorted_spare, sorted_prices_spare):
+    print("\nThis feature will allow you to delete an entry from the list. Note that if you want to add the item back in you will need to use the 'Add Entry' feature. If you don't wish to continue, enter 'back'. otherwise, please enter the string you wish to delete: ")
+    user_input = input()
+    if user_input == 'back':
+        return
+    for x in range(len(strings)):
+        print(x)
+        if sorted_strings[x] == user_input:
+            sorted_strings.remove(user_input)
+            sorted_spare.remove(user_input)
+            sorted_prices.remove(sorted_prices[x])
+            sorted_prices_spare.remove(sorted_prices_spare[x])
+            break
+    print("\nYour entry has been deleted. Here is your list: ")
+    print_sorted_strings_simple(sorted_strings, sorted_prices)
+    print("\nIf there are no changes, you may have misspelled the entry. If this is the case, please try again.")
+
+def get_total_cost(sorted_prices):
+    user_input = input("\nThis feature allows you to get the total cost of all the items on your list. Would you like to see the total cost of your list? Please enter Y (yes) or N (no): \n")
+    if user_input == 'Y':
+        sum = 0
+        for x in range(len(sorted_prices)):
+            sorted_prices[x] = float(sorted_prices[x])
+            sum += sorted_prices[x]
+        sum = str(sum)
+        print('Your total is $' + sum)
+    elif user_input == 'N':
+        return
+    else:
+        print("Invalid input. Please try again.")
+
+def undo_clear(sorted_strings, sorted_spare, sorted_prices, sorted_prices_spare, sorted_units, sorted_units_spare):
+    user_input = input("\nThis feature will restore the last version of your list. Would you like to continue? Please enter Y (yes) or N (no): \n")
+    if user_input == 'Y':
+        sorted_strings = sorted_spare
+        sorted_prices = sorted_prices_spare
+        if not sorted_units_spare:
+            print("\nHere is your restored list:")
+            print_sorted_strings_simple(sorted_strings, sorted_prices)
+        else:
+            sorted_units = sorted_units_spare
+            print("\nHere is your restored list:")
+            print_sorted_strings_pantry_simple(sorted_strings, sorted_prices, sorted_units)
+    else:
+        return
+
+#def clear_button_clicked(strings, sorted_strings):
+    #clear = clear_strings(strings, sorted_strings)
+
+
+main()
+
+#root = tk.Tk()
+#root.title("Button Example")
+
+#button = tk.Button(root, text = "Clear List", command = clear_button_clicked)
+
+#button.pack()
+
+#root.mainloop()
+
+
