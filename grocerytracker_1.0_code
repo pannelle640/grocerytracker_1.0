@@ -3,6 +3,8 @@
 #Input Service
 
 import tkinter as tk
+import pika
+import sorting as st
 
 def main():
 
@@ -11,7 +13,8 @@ def main():
         sorted_units = []
         sorted_units_spare = []
         strings = get_input_strings()
-        sorted_strings, sorted_spare = sort_strings(strings)
+        push_sort_strings(strings)
+        sorted_strings, sorted_spare = get_sort_strings(strings)
         sorted_prices, sorted_prices_spare = get_input_prices(sorted_strings)
 
         print_sorted_strings_grocery(sorted_strings, sorted_prices)
@@ -68,10 +71,43 @@ def get_input_strings():
         strings.append(user_input)
     return strings
 
-def sort_strings(strings):
-    sort = sorted(strings)
-    sort_spare = sorted(strings)
-    return sort, sort_spare
+def push_sort_strings(strings):
+    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    channel = connection.channel()
+    channel2 = connection.channel()
+
+    channel.queue_declare(queue='unsorted_data_queue')
+    channel2.queue_declare(queue='length_queue')
+
+    for data_item in strings:
+        channel.basic_publish(exchange='', routing_key='unsorted_data_queue', body=str(data_item))
+
+    num_of_items = len(strings)
+
+    channel.basic_publish(exchange='', routing_key='length_queue', body=str(num_of_items))
+
+
+def get_sort_strings(strings):
+    st.sort_the_list()
+
+    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    channel = connection.channel()
+    sort_list = []
+
+    def callback(ch, method, properties, body):
+        num = len(strings)
+        item = body.decode()
+        sort_list.append(item)
+        if len(sort_list) >= num:
+            channel.stop_consuming()
+
+    channel.basic_consume(queue='unsorted_data_queue', on_message_callback=callback, auto_ack=True)
+
+    channel.start_consuming()
+
+    sort_spare = sort_list.copy()
+
+    return sort_list, sort_spare
 
 def print_sorted_strings_grocery(sorted_strings, sorted_prices):
     user_input = input("\nWould you like to see your full list? Please type Y (yes) or N (no)")
@@ -173,5 +209,7 @@ main()
 #button.pack()
 
 #root.mainloop()
+
+
 
 
