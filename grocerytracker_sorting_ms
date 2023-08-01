@@ -1,0 +1,32 @@
+import pika
+
+def sort_the_list():
+    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    channel = connection.channel()
+    channel2 = connection.channel()
+
+    sort_list = []
+    num_of_items = 0
+
+    def length_callback(ch, method, properties, body):
+        nonlocal num_of_items
+        num_of_items = body.decode()
+        num_of_items = int(num_of_items)
+        channel2.stop_consuming()
+
+    def callback(ch, method, properties, body):
+        item = body.decode()
+        sort_list.append(item)
+        if len(sort_list) >= num_of_items:
+            channel.stop_consuming()
+
+    channel.basic_consume(queue='length_queue', on_message_callback=length_callback, auto_ack=True)
+
+    channel.basic_consume(queue='unsorted_data_queue', on_message_callback=callback, auto_ack=True)
+
+    channel.start_consuming()
+
+    sort_list.sort()
+
+    for data_item in sort_list:
+        channel.basic_publish(exchange='', routing_key='unsorted_data_queue', body=str(data_item))
